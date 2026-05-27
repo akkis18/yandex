@@ -134,7 +134,7 @@ Authorized users listed in the `.env` `ADMIN_USER_IDS` environment variable can 
 * **Benefit**: Ensures operator cards are delivered to the correct operator group in `.env` even in local database-less mode.
 
 ### Task 6: Premium Unified Congratulations Card
-* **Action**: Updated both driver and admin congrats text inside `registration.wizard.ts` to output a gorgeous card. Shows Yandex Pro app links for Play Store / App Store and reassures them that *"Tez orada operatorimiz siz bilan bog'lanadi. 😊"*.
+* **Action**: Updated both driver and admin congrats text inside `registration.wizard.ts` to output a gorgeous card. Shows Yandex Pro app links for Play Store / App Store and reassures them that *"Tez orada operatorimiz siz bilan bog'lanadi."*.
 
 ### Task 7: Native HTTP Health-Check Server
 * **Action**: Implemented a lightweight, zero-dependency HTTP server using Node's native `http` module inside `src/index.ts` listening on `PORT` (default: 3000). Serves a `/health` endpoint.

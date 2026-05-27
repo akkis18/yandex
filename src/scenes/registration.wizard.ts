@@ -375,9 +375,8 @@ export const registrationWizard = new Scenes.WizardScene<BotContext>(
 
       const successMsg =
         `🎉 *Tabriklaymiz! Ro'yxatdan o'tish muvaffaqiyatli yakunlandi.*\n\n` +
-        `Yuborgan ma'lumotlaringizni tekshirib chiqamiz.\n` +
-        `Tez orada operatorimiz siz bilan bog'lanadi. 😊\n\n\n` +
-        `📲 🚖 *Ungacha Yandex.Pro (Taksometr) ilovasini yuklab olishni maslahat beramiz:*\n\n` +
+        `Tez orada operatorimiz siz bilan bog'lanadi.\n\n\n` +
+        `📲 🚖 *Yandex Pro (Taksometr) ilovasini yuklab olish:*\n\n` +
         `• *Play Market:*\n` +
         `https://play.google.com/store/apps/details?id=ru.yandex.taximeter\n\n` +
         `• *App Store:*\n` +

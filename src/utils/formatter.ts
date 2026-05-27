@@ -66,8 +66,7 @@ export function formatLeadCard(
     `• *F.I.Sh. (Telegram):* \`${escapeMarkdown(lead.fullname)}\`\n` +
     `• *Telefon raqami:* \`${escapeMarkdown(formattedPhone)}\`\n` +
     `• *Ro'yxatdan o'tgan sana:* \`${formattedDate}\`\n` +
-    `• *Joriy holat:* *${statusStr}*\n` +
-    `• *Taksopark:* \`${escapeMarkdown(taxiparkName)}\`\n\n` +
+    `• *Joriy holat:* *${statusStr}*\n\n` +
     `⚡ *Ariza ID:* \`${lead.id}\`\n`;
 
   if (operatorUsername) {
