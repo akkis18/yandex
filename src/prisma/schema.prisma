@@ -1,0 +1,48 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  APPROVED
+  REJECTED
+}
+
+model Taxipark {
+  id                String   @id @default(uuid())
+  name              String
+  slug              String   @unique
+  telegram_group_id String
+  is_active         Boolean  @default(true)
+  created_at        DateTime @default(now())
+  leads             Lead[]
+
+  @@map("taxiparks")
+}
+
+model Lead {
+  id                           String     @id @default(uuid())
+  taxipark_id                  String
+  fullname                     String
+  phone                        String
+  license_front_file_id        String
+  license_back_file_id         String
+  tex_passport_front_file_id   String
+  tex_passport_back_file_id    String
+  status                       LeadStatus @default(NEW)
+  created_at                   DateTime   @default(now())
+
+  // Relations
+  taxipark                     Taxipark   @relation(fields: [taxipark_id], references: [id], onDelete: Cascade)
+
+  @@map("leads")
+}

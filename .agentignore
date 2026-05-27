@@ -1,0 +1,16 @@
+# Agentic AI Ignore File
+# Prevents AI assistants from scanning heavy, compiled, or sensitive files.
+
+node_modules/
+dist/
+build/
+.git/
+.env
+.env.*
+package-lock.json
+*.log
+tmp/
+CVS/
+.DS_Store
+.idea/
+.vscode/
