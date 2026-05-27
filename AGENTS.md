@@ -140,6 +140,10 @@ Authorized users listed in the `.env` `ADMIN_USER_IDS` environment variable can 
 * **Action**: Implemented a lightweight, zero-dependency HTTP server using Node's native `http` module inside `src/index.ts` listening on `PORT` (default: 3000). Serves a `/health` endpoint.
 * **Benefit**: Allows the bot to bind to a port on free hosts (like Render.com) that mandate port listening, and serves as an endpoint for free pinger services (like UptimeRobot) to keep the bot awake 24/7 for free.
 
+### Task 8: Global Uncaught Error Logging
+* **Action**: Registered process-level listeners for `unhandledRejection` and `uncaughtException` inside `src/index.ts`.
+* **Benefit**: Guarantees that any asynchronous polling conflicts or background connection errors on Render are captured with exact stack traces, preventing silent exits and simplifying diagnostics.
+
 ---
 
 ## 📋 6. Future Work: Production Deployment Checklist

@@ -2,6 +2,15 @@ import http from 'http';
 import { BotBootstrap } from './bot/bootstrap.js';
 import { logger } from './utils/logger.js';
 
+// Catch and log all unhandled promise rejections and uncaught exceptions in production
+process.on('unhandledRejection', (reason) => {
+  logger.error('UnhandledRejection', 'Unhandled promise rejection detected:', reason);
+});
+
+process.on('uncaughtException', (error) => {
+  logger.error('UncaughtException', 'Uncaught exception detected:', error);
+});
+
 async function main() {
   const bootstrap = new BotBootstrap();
   await bootstrap.start();
