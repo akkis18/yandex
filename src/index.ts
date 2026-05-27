@@ -12,12 +12,8 @@ process.on('uncaughtException', (error) => {
 });
 
 async function main() {
-  const bootstrap = new BotBootstrap();
-  await bootstrap.start();
-
-  // Create a lightweight HTTP server for Render's port binding check
-  // and to serve as a 24/7 awake ping endpoint via UptimeRobot
-  const port = process.env.PORT || 3000;
+  // 1. Create and start HTTP server FIRST so Render detects the open port immediately
+  const port = parseInt(process.env.PORT || '3000', 10);
   const server = http.createServer((req, res) => {
     if (req.url === '/health' || req.url === '/') {
       res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
@@ -28,9 +24,13 @@ async function main() {
     }
   });
 
-  server.listen(port, () => {
+  server.listen(port, '0.0.0.0', () => {
     logger.info('HttpServer', `Minimal health-check HTTP server listening on port ${port}`);
   });
+
+  // 2. Start the Telegram Bot in parallel
+  const bootstrap = new BotBootstrap();
+  await bootstrap.start();
 }
 
 main().catch((error) => {

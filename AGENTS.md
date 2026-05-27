@@ -138,7 +138,7 @@ Authorized users listed in the `.env` `ADMIN_USER_IDS` environment variable can 
 
 ### Task 7: Native HTTP Health-Check Server
 * **Action**: Implemented a lightweight, zero-dependency HTTP server using Node's native `http` module inside `src/index.ts` listening on `PORT` (default: 3000). Serves a `/health` endpoint.
-* **Benefit**: Allows the bot to bind to a port on free hosts (like Render.com) that mandate port listening, and serves as an endpoint for free pinger services (like UptimeRobot) to keep the bot awake 24/7 for free.
+* **Benefit**: Started **before** the blocking `this.bot.launch()` thread in `index.ts`. This guarantees that the HTTP server binds to the port immediately, so Render's port scan succeeds instantly and marks the service `Live`, while the bot runs in the background. It also serves as an endpoint for UptimeRobot to keep the bot awake 24/7.
 
 ### Task 8: Global Uncaught Error Logging
 * **Action**: Registered process-level listeners for `unhandledRejection` and `uncaughtException` inside `src/index.ts`.
