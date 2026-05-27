@@ -144,6 +144,10 @@ Authorized users listed in the `.env` `ADMIN_USER_IDS` environment variable can 
 * **Action**: Registered process-level listeners for `unhandledRejection` and `uncaughtException` inside `src/index.ts`.
 * **Benefit**: Guarantees that any asynchronous polling conflicts or background connection errors on Render are captured with exact stack traces, preventing silent exits and simplifying diagnostics.
 
+### Task 9: Automatic Database Seeding & Upsert on Startup
+* **Action**: Added `ensureDefaultTaxipark()` static method to `TaxiparkService` and triggered it inside `BotBootstrap.start()` right after database connection.
+* **Benefit**: Automatically detects if the default taxipark ID is missing in a fresh production database and seeds it. If it exists but the `.env` `OPERATOR_GROUP_ID` changed, it automatically updates the row, preventing foreign key constraint errors (`leads_taxipark_id_fkey`) when drivers register.
+
 ---
 
 ## 📋 6. Future Work: Production Deployment Checklist

@@ -357,6 +357,8 @@ export class BotBootstrap {
       // 1. Connect to Database
       try {
         await db.connect();
+        // Ensure default taxipark row exists in database to satisfy Prisma foreign key constraints
+        await TaxiparkService.ensureDefaultTaxipark();
       } catch (dbError) {
         if (env.NODE_ENV === 'development' || !env.NODE_ENV) {
           logger.warn(

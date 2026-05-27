@@ -5,6 +5,40 @@ import { logger } from '../utils/logger.js';
 export class TaxiparkService {
   private static context = 'TaxiparkService';
 
+  static async ensureDefaultTaxipark(): Promise<void> {
+    try {
+      const defaultId = 'default-park-id';
+      // Only execute if database connection is active and stable
+      const existing = await db.client.taxipark.findUnique({
+        where: { id: defaultId },
+      }).catch(() => null);
+
+      const currentGroup = process.env.OPERATOR_GROUP_ID || '-100123456789';
+
+      if (!existing) {
+        logger.info(this.context, 'Default taxipark not found in production DB. Seeding default taxipark...');
+        await db.client.taxipark.create({
+          data: {
+            id: defaultId,
+            name: 'Yandex Premium Taxipark',
+            slug: 'mvp_park',
+            telegram_group_id: currentGroup,
+            is_active: true,
+          },
+        });
+        logger.info(this.context, 'Default taxipark successfully seeded in database!');
+      } else if (existing.telegram_group_id !== currentGroup) {
+        logger.info(this.context, 'Updating default taxipark telegram_group_id in database to match environment...');
+        await db.client.taxipark.update({
+          where: { id: defaultId },
+          data: { telegram_group_id: currentGroup },
+        });
+      }
+    } catch (error) {
+      logger.warn(this.context, 'Database is offline or not fully migrated. Skipping default taxipark seeding.', error);
+    }
+  }
+
   static async findById(id: string): Promise<Taxipark | null> {
     try {
       return await db.client.taxipark.findUnique({
