@@ -97,9 +97,8 @@ export class BotBootstrap {
 
       // 3. Normal private chat welcome for drivers
       return ctx.reply(
-        `🚕 *"${parkName}"* avtoparkiga xush kelibsiz!\n\n` +
-          `Biz sizni haydovchilarni ro'yxatdan o'tkazish botimizda ko'rib turganimizdan xursandmiz.\n` +
-          `Ro'yxatdan o'tishni boshlash uchun quyidagi tugmani bosing yoki /register buyrug'ini yuboring.`,
+        `👋 *Xush kelibsiz!*\n\n` +
+          `Ro'yxatdan o'tishni boshlash uchun quyidagi *"🚖 Haydovchi bo'lish"* tugmasini bosing yoki /register buyrug'ini yuboring.`,
         {
           parse_mode: 'Markdown',
           ...RegistrationKeyboards.startRegistration(),
