@@ -148,6 +148,20 @@ Authorized users listed in the `.env` `ADMIN_USER_IDS` environment variable can 
 * **Action**: Added `ensureDefaultTaxipark()` static method to `TaxiparkService` and triggered it inside `BotBootstrap.start()` right after database connection.
 * **Benefit**: Automatically detects if the default taxipark ID is missing in a fresh production database and seeds it. If it exists but the `.env` `OPERATOR_GROUP_ID` changed, it automatically updates the row, preventing foreign key constraint errors (`leads_taxipark_id_fkey`) when drivers register.
 
+### Task 10: Database Keep-Alive & Phone Uniqueness Check
+* **Action**: Added an active database query (`db.client.taxipark.findFirst()`) inside `src/index.ts` `/health` route, added `@unique` constraint to the `phone` field in `schema.prisma`, and added a verification query inside `registration.wizard.ts` Step 2.
+* **Benefit**: Keeps Neon's serverless database completely warm 24/7/365 permanently (via UptimeRobot's 5-minute pings) for $0/month, and blocks duplicate driver registrations immediately at the beginning of the wizard with a premium Uzbek error card.
+
+### Task 11: Unique Driver Database (Shafyorlar Bazasi) & Non-Unique Leads
+* **Action**: 
+  1. Removed the `@unique` constraint on the `phone` field in the `Lead` model in `schema.prisma`.
+  2. Created a dedicated `Driver` model with a `@unique` constraint on `phone` to form the unique customer database.
+  3. Integrated `db.client.driver.upsert` transaction inside `LeadService.createLead` to automatically gather/update unique drivers in the background while allowing non-unique multiple registrations (leads).
+  4. Updated `findLeadByPhone` in `LeadService` to use `findFirst` instead of `findUnique` for compile-safety.
+  5. Implemented `getAllDrivers()` in `AdminService`, and updated the `📊 Statistika` command metrics to display both unique drivers database count and total applications count.
+  6. Updated the `📥 Haydovchilarni yuklash` command to export a professionally structured report including both the unique drivers database list and the full applications log.
+* **Benefit**: Restores the old non-blocking wizard flow, allowing drivers to submit multiple applications seamlessly, while accumulating a clean, deduplicated, and robust unique drivers database for SaaS metrics.
+
 ---
 
 ## 📋 6. Future Work: Production Deployment Checklist

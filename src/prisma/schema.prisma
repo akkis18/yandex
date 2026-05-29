@@ -46,3 +46,12 @@ model Lead {
 
   @@map("leads")
 }
+
+model Driver {
+  id         String   @id @default(uuid())
+  fullname   String
+  phone      String   @unique
+  created_at DateTime @default(now())
+
+  @@map("drivers")
+}

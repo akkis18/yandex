@@ -1,4 +1,4 @@
-import { Lead, LeadStatus, Taxipark } from '@prisma/client';
+import { Lead, LeadStatus, Taxipark, Driver } from '@prisma/client';
 import { db } from '../database/client.js';
 import { logger } from '../utils/logger.js';
 import { TaxiparkService } from './taxipark.service.js';
@@ -9,6 +9,7 @@ const contextName = 'LeadService';
 
 // In-memory array fallback for local development when PostgreSQL is offline
 const mockLeadsDb: Lead[] = [];
+const mockDriversDb: Driver[] = [];
 
 /**
  * Service Layer to handle Lead persistence, updates, and operator delivery notifications.
@@ -19,6 +20,13 @@ export class LeadService {
    */
   static getMockLeads(): Lead[] {
     return mockLeadsDb;
+  }
+
+  /**
+   * Helper getter to access in-memory mock store for drivers.
+   */
+  static getMockDrivers(): Driver[] {
+    return mockDriversDb;
   }
 
   /**
@@ -35,7 +43,15 @@ export class LeadService {
     tex_passport_back_file_id: string;
   }): Promise<Lead> {
     try {
-      logger.info(contextName, `Attempting to persist lead in DB for driver: ${data.fullname}`);
+      logger.info(contextName, `Attempting to persist lead/driver in DB for: ${data.fullname}`);
+      
+      // Upsert into unique Driver database first
+      await db.client.driver.upsert({
+        where: { phone: data.phone },
+        update: { fullname: data.fullname },
+        create: { fullname: data.fullname, phone: data.phone },
+      });
+
       return await db.client.lead.create({
         data: {
           taxipark_id: data.taxipark_id,
@@ -49,11 +65,25 @@ export class LeadService {
         },
       });
     } catch (error) {
-      logger.error(contextName, `Database error creating lead: ${data.fullname}`, error);
+      logger.error(contextName, `Database error creating lead/driver: ${data.fullname}`, error);
 
       // Offline mock fallback in development
       if (process.env.NODE_ENV === 'development' || !process.env.NODE_ENV) {
-        logger.warn(contextName, 'Database is offline. Saving lead in mock in-memory store.');
+        logger.warn(contextName, 'Database is offline. Saving lead and driver in mock in-memory store.');
+        
+        // Mock driver upsert
+        const existingDriverIndex = mockDriversDb.findIndex((d) => d.phone === data.phone);
+        if (existingDriverIndex !== -1) {
+          mockDriversDb[existingDriverIndex].fullname = data.fullname;
+        } else {
+          mockDriversDb.push({
+            id: `mock-driver-${Math.random().toString(36).substring(2, 11)}`,
+            fullname: data.fullname,
+            phone: data.phone,
+            created_at: new Date(),
+          });
+        }
+
         const mockLead: Lead = {
           id: `mock-lead-${Math.random().toString(36).substring(2, 11)}`,
           taxipark_id: data.taxipark_id,
@@ -86,6 +116,26 @@ export class LeadService {
 
       if (process.env.NODE_ENV === 'development' || !process.env.NODE_ENV) {
         const found = mockLeadsDb.find((l) => l.id === leadId);
+        return found || null;
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Retrieves a single lead by Phone number. Supports in-memory lookup.
+   */
+  static async findLeadByPhone(phone: string): Promise<Lead | null> {
+    try {
+      return await db.client.lead.findFirst({
+        where: { phone },
+        orderBy: { created_at: 'desc' },
+      });
+    } catch (error) {
+      logger.error(contextName, `Database error fetching lead by phone: ${phone}`, error);
+
+      if (process.env.NODE_ENV === 'development' || !process.env.NODE_ENV) {
+        const found = mockLeadsDb.find((l) => l.phone === phone);
         return found || null;
       }
       throw error;
