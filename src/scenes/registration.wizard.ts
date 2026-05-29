@@ -3,8 +3,63 @@ import { BotContext } from '../types/context.js';
 import { RegistrationKeyboards } from '../keyboards/registration.keyboard.js';
 import { logger } from '../utils/logger.js';
 import { LeadService } from '../services/lead.service.js';
+import fs from 'fs';
+import path from 'path';
 
 const contextName = 'RegistrationWizard';
+const assetCache: Record<string, string> = {};
+
+/**
+ * Sends a sample document photo with a caption. Caches file_id to optimize future requests.
+ */
+async function sendSamplePhoto(
+  ctx: BotContext,
+  assetName: string,
+  fileName: string,
+  caption: string,
+  replyMarkup: any,
+) {
+  const localPath = path.join(process.cwd(), 'assets', fileName);
+  try {
+    if (assetCache[assetName]) {
+      logger.info(contextName, `Sending sample photo "${assetName}" from memory cache`);
+      return await ctx.replyWithPhoto(assetCache[assetName], {
+        caption,
+        parse_mode: 'Markdown',
+        reply_markup: replyMarkup,
+      });
+    }
+
+    if (fs.existsSync(localPath)) {
+      logger.info(contextName, `Uploading sample photo "${assetName}" from local file: ${localPath}`);
+      const msg = await ctx.replyWithPhoto({ source: localPath }, {
+        caption,
+        parse_mode: 'Markdown',
+        reply_markup: replyMarkup,
+      });
+      
+      // Cache the file_id for future requests
+      if (msg && 'photo' in msg && msg.photo && msg.photo.length > 0) {
+        const fileId = msg.photo[msg.photo.length - 1].file_id;
+        assetCache[assetName] = fileId;
+        logger.info(contextName, `Successfully cached file_id for "${assetName}": ${fileId}`);
+      }
+      return msg;
+    } else {
+      logger.warn(contextName, `Local sample photo file not found at ${localPath}`);
+      return await ctx.reply(caption, {
+        parse_mode: 'Markdown',
+        reply_markup: replyMarkup,
+      });
+    }
+  } catch (err) {
+    logger.error(contextName, `Error sending sample photo "${assetName}":`, err);
+    return await ctx.reply(caption, {
+      parse_mode: 'Markdown',
+      reply_markup: replyMarkup,
+    });
+  }
+}
 
 /**
  * Helper function to check if user is a configured global admin.
@@ -146,13 +201,13 @@ export const registrationWizard = new Scenes.WizardScene<BotContext>(
 
     logger.info(contextName, `User ${ctx.from?.id} registered phone: ${phone}, fullname: ${fullname}`);
 
-    await ctx.reply(
+    await sendSamplePhoto(
+      ctx,
+      'license_front',
+      'license_front.jpg',
       '🚖 *2-qadam: Haydovchilik guvohnomasi (OLD TOMONI)*\n\n' +
-        'Iltimos, haydovchilik guvohnomangiz old tomonining rasmini yuboring.',
-      {
-        parse_mode: 'Markdown',
-        ...RegistrationKeyboards.requiredStep(),
-      },
+        'Iltimos, haydovchilik guvohnomangiz old tomonining rasmini yuboring (namunadagidek).',
+      RegistrationKeyboards.requiredStep().reply_markup,
     );
     return ctx.wizard.next();
   },
@@ -186,13 +241,13 @@ export const registrationWizard = new Scenes.WizardScene<BotContext>(
     ctx.session.registration!.license_front_file_id = fileId;
     logger.info(contextName, `User ${ctx.from?.id} uploaded license front: ${fileId}`);
 
-    await ctx.reply(
+    await sendSamplePhoto(
+      ctx,
+      'license_back',
+      'license_back.jpg',
       '🚖 *3-qadam: Haydovchilik guvohnomasi (ORQA TOMONI)*\n\n' +
-        'Iltimos, haydovchilik guvohnomangiz orqa tomonining rasmini yuboring.',
-      {
-        parse_mode: 'Markdown',
-        ...RegistrationKeyboards.requiredStep(),
-      },
+        'Iltimos, haydovchilik guvohnomangiz orqa tomonining rasmini yuboring (namunadagidek).',
+      RegistrationKeyboards.requiredStep().reply_markup,
     );
     return ctx.wizard.next();
   },
@@ -226,13 +281,13 @@ export const registrationWizard = new Scenes.WizardScene<BotContext>(
     ctx.session.registration!.license_back_file_id = fileId;
     logger.info(contextName, `User ${ctx.from?.id} uploaded license back: ${fileId}`);
 
-    await ctx.reply(
+    await sendSamplePhoto(
+      ctx,
+      'tex_passport_front',
+      'tex_passport_front.jpg',
       '🚖 *4-qadam: Avtomobil texnik pasporti (OLD TOMONI)*\n\n' +
-        'Iltimos, avtomobil texnik pasportining (STS) old tomoni rasmini yuboring.',
-      {
-        parse_mode: 'Markdown',
-        ...RegistrationKeyboards.requiredStep(),
-      },
+        'Iltimos, avtomobil texnik pasportining (STS) old tomoni rasmini yuboring (namunadagidek).',
+      RegistrationKeyboards.requiredStep().reply_markup,
     );
     return ctx.wizard.next();
   },
@@ -266,13 +321,13 @@ export const registrationWizard = new Scenes.WizardScene<BotContext>(
     ctx.session.registration!.tex_passport_front_file_id = fileId;
     logger.info(contextName, `User ${ctx.from?.id} uploaded tex passport front: ${fileId}`);
 
-    await ctx.reply(
+    await sendSamplePhoto(
+      ctx,
+      'tex_passport_back',
+      'tex_passport_back.jpg',
       '🚖 *5-qadam: Avtomobil texnik pasporti (ORQA TOMONI)*\n\n' +
-        'Iltimos, avtomobil texnik pasportining (STS) orqa tomoni rasmini yuboring.',
-      {
-        parse_mode: 'Markdown',
-        ...RegistrationKeyboards.requiredStep(),
-      },
+        'Iltimos, avtomobil texnik pasportining (STS) orqa tomoni rasmini yuboring (namunadagidek).',
+      RegistrationKeyboards.requiredStep().reply_markup,
     );
     return ctx.wizard.next();
   },
