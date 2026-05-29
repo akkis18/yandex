@@ -160,7 +160,8 @@ Authorized users listed in the `.env` `ADMIN_USER_IDS` environment variable can 
   4. Updated `findLeadByPhone` in `LeadService` to use `findFirst` instead of `findUnique` for compile-safety.
   5. Implemented `getAllDrivers()` in `AdminService`, and updated the `📊 Statistika` command metrics to display both unique drivers database count and total applications count.
   6. Updated the `📥 Haydovchilarni yuklash` command to export a professionally structured report including both the unique drivers database list and the full applications log.
-* **Benefit**: Restores the old non-blocking wizard flow, allowing drivers to submit multiple applications seamlessly, while accumulating a clean, deduplicated, and robust unique drivers database for SaaS metrics.
+  7. Implemented `syncExistingLeadsToDrivers()` inside `LeadService` and triggered it on `BotBootstrap.start()` to automatically backfill/heal any pre-existing leads into the unique drivers database on every bot startup/reboot.
+* **Benefit**: Restores the old non-blocking wizard flow, allowing drivers to submit multiple applications seamlessly, while accumulating a clean, deduplicated, and robust unique drivers database for SaaS metrics. Automatically self-heals the database on boot if any registrations bypass the driver database.
 
 ---
 

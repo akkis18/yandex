@@ -319,4 +319,53 @@ export class LeadService {
       throw error; // Re-throw to propagate back to handler
     }
   }
+
+  /**
+   * Automatically synchronizes all existing leads in the database into the unique Driver table.
+   * This handles backfilling old registrations and ensures no data mismatch occurs.
+   */
+  static async syncExistingLeadsToDrivers(): Promise<void> {
+    try {
+      logger.info(contextName, 'Starting automatic synchronization of existing leads to unique drivers...');
+      
+      let leads: Lead[] = [];
+      try {
+        leads = await db.client.lead.findMany();
+      } catch (err) {
+        logger.error(contextName, 'Failed to fetch leads from DB during sync, possibly offline.', err);
+        return;
+      }
+      
+      logger.info(contextName, `Found ${leads.length} total leads to process.`);
+      
+      let syncCount = 0;
+      for (const lead of leads) {
+        try {
+          await db.client.driver.upsert({
+            where: { phone: lead.phone },
+            update: { fullname: lead.fullname },
+            create: { fullname: lead.fullname, phone: lead.phone, created_at: lead.created_at },
+          });
+          
+          // Also backfill in-memory mock if offline/development
+          const mockExists = mockDriversDb.some((d) => d.phone === lead.phone);
+          if (!mockExists) {
+            mockDriversDb.push({
+              id: `sync-driver-${Math.random().toString(36).substring(2, 11)}`,
+              fullname: lead.fullname,
+              phone: lead.phone,
+              created_at: lead.created_at,
+            });
+          }
+          
+          syncCount++;
+        } catch (upsertErr) {
+          logger.error(contextName, `Failed to upsert driver for phone ${lead.phone}`, upsertErr);
+        }
+      }
+      logger.info(contextName, `Successfully synchronized ${syncCount} unique driver records.`);
+    } catch (err) {
+      logger.error(contextName, 'Error during automatic leads-to-drivers synchronization:', err);
+    }
+  }
 }
